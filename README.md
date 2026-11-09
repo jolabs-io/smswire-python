@@ -6,7 +6,7 @@ Send SMS and one-time codes from your app through your own Android phones with [
 pip install smswire
 ```
 
-Python 3.9+. Sync and async clients, built on httpx.
+Python 3.10+. Sync and async clients, built on httpx.
 
 ## Set up
 

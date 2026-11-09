@@ -9,7 +9,7 @@ description = "Official Python SDK for SMSWire: send SMS and one-time codes thro
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = ["httpx>=0.25,<1"]
 keywords = ["sms", "otp", "android", "gateway", "smswire"]
 classifiers = [
