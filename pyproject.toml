@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling>=1.21"]
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
@@ -25,7 +25,6 @@ dev = ["pytest>=8", "mypy>=1.10"]
 [project.urls]
 Homepage = "https://smswire.app"
 Documentation = "https://smswire.app/docs"
-Source = "https://github.com/yosefw1221/realy-sms/tree/main/sdks/python"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/smswire"]
