@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "smswire"
+version = "0.1.0"
+description = "Official Python SDK for SMSWire: send SMS and one-time codes through your own Android phones."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.9"
+dependencies = ["httpx>=0.25,<1"]
+keywords = ["sms", "otp", "android", "gateway", "smswire"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+  "Typing :: Typed",
+  "Intended Audience :: Developers",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "mypy>=1.10"]
+
+[project.urls]
+Homepage = "https://smswire.app"
+Documentation = "https://smswire.app/docs"
+Source = "https://github.com/yosefw1221/realy-sms/tree/main/sdks/python"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/smswire"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+strict = true
+files = ["src/smswire"]
