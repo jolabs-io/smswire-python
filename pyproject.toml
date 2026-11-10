@@ -24,7 +24,8 @@ dev = ["pytest>=8", "mypy>=1.10"]
 
 [project.urls]
 Homepage = "https://smswire.app"
-Documentation = "https://smswire.app/docs"
+Documentation = "https://smswire.app/docs#sdks"
+Source = "https://github.com/jolabs-io/smswire-python"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/smswire"]
