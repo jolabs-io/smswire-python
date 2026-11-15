@@ -26,9 +26,15 @@ SPEC = json.loads((SDKS / "openapi.json").read_text("utf-8"))["components"]["sch
         (types.SchedulePage, "SchedulePage"),
         (types.BulkItem, "BulkItem"),
         (types.ScheduleRecipient, "ScheduleRecipient"),
+        (types.Group, "GroupApiView"),
+        (types.GroupList, "GroupList"),
+        (types.GroupMember, "GroupMemberView"),
+        (types.GroupMemberPage, "GroupMemberPage"),
+        (types.AddMembersResult, "GroupMembersResponse"),
+        (types.GroupMemberInput, "GroupMemberInput"),
     ],
 )
 def test_fields_match_the_spec(typed: type, schema: str) -> None:
     spec = SPEC[schema]
     assert set(typed.__annotations__) == set(spec["properties"]), schema
-    assert set(typed.__required_keys__) == set(spec.get("required", [])) or schema in ("BulkItem", "ScheduleRecipient"), schema
+    assert set(typed.__required_keys__) == set(spec.get("required", [])) or schema in ("BulkItem", "ScheduleRecipient", "GroupMemberInput"), schema

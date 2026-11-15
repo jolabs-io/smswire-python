@@ -112,3 +112,10 @@ def test_needs_a_key_and_a_project(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_204_is_none() -> None:
     rec = Recorder(lambda _: httpx.Response(204))
     assert SMSWire("k", "p", http_client=rec.client()).schedules.delete("sch_1") is None
+
+
+def test_group_member_number_is_encoded_in_the_path() -> None:
+    rec = Recorder(lambda _: httpx.Response(204))
+    SMSWire("k", "p", base_url="https://gw.test", http_client=rec.client()).groups.remove_member("grp_1", "+251911234567")
+    assert str(rec.requests[0].url) == "https://gw.test/v1/p/p/groups/grp_1/members/%2B251911234567"
+    assert rec.requests[0].method == "DELETE"

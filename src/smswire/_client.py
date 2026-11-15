@@ -9,8 +9,14 @@ from . import _requests as r
 from ._http import Request, Settings, send, send_async
 from ._version import __version__
 from .types import (
+    AddMembersResult,
     BulkItem,
     BulkResult,
+    Group,
+    GroupList,
+    GroupMember,
+    GroupMemberInput,
+    GroupMemberPage,
     Message,
     MessagePage,
     MessageStatus,
@@ -82,8 +88,9 @@ class Messages:
 
     def send_bulk(
         self,
-        messages: Sequence[BulkItem],
+        messages: Sequence[BulkItem] = (),
         *,
+        group_ids: Optional[Sequence[str]] = None,
         name: Optional[str] = None,
         body: Optional[str] = None,
         template: Optional[str] = None,
@@ -94,8 +101,8 @@ class Messages:
         metadata: Optional[Dict[str, Any]] = None,
         send_at: r.When = None,
     ) -> BulkResult:
-        """Queues a batch; invalid or opted-out items come back in ``rejected``."""
-        req = r.send_bulk(self._paths, messages=messages, name=name, body=body, template=template, rate=rate, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
+        """Queues a batch (``messages`` and/or the members of ``group_ids``); invalid or opted-out items come back in ``rejected``."""
+        req = r.send_bulk(self._paths, messages=messages, group_ids=group_ids, name=name, body=body, template=template, rate=rate, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
         return cast(BulkResult, self._call(req))
 
     def get(self, id: str) -> Message:
@@ -190,6 +197,53 @@ class Schedules:
         self._call(r.delete_schedule(self._paths, id))
 
 
+class Groups:
+    """The workspace's contact groups: every project's key sees the same ones."""
+
+    def __init__(self, call: Any, paths: r.Paths) -> None:
+        self._call, self._paths = call, paths
+
+    def create(self, name: str, *, keywords: Optional[Sequence[str]] = None, join_reply: Optional[str] = None) -> Group:
+        """With ``keywords``, someone who texts one of them (the whole text) to a workspace phone joins."""
+        return cast(Group, self._call(r.create_group(self._paths, name=name, keywords=keywords, join_reply=join_reply)))
+
+    def list(self) -> GroupList:
+        return cast(GroupList, self._call(r.list_groups(self._paths)))
+
+    def get(self, id: str) -> Group:
+        return cast(Group, self._call(r.get_group(self._paths, id)))
+
+    def update(self, id: str, **changes: Any) -> Group:
+        """Only the fields passed change (name, keywords, join_reply); ``keywords=[]`` turns joining by text off."""
+        return cast(Group, self._call(r.update_group(self._paths, id, **changes)))
+
+    def delete(self, id: str) -> None:
+        """The group goes; its contacts stay."""
+        self._call(r.delete_group(self._paths, id))
+
+    def list_members(self, id: str, *, cursor: Optional[str] = None, limit: Optional[int] = None) -> GroupMemberPage:
+        """One page, alphabetically; pass ``next_cursor`` back as ``cursor`` for the next."""
+        return cast(GroupMemberPage, self._call(r.list_group_members(self._paths, id, cursor=cursor, limit=limit)))
+
+    def list_all_members(self, id: str, *, limit: Optional[int] = None) -> Iterator[GroupMember]:
+        """Every member, fetching pages as you iterate."""
+        cursor: Optional[str] = None
+        while True:
+            page = self.list_members(id, cursor=cursor, limit=limit)
+            yield from page["data"]
+            cursor = page.get("next_cursor")
+            if not cursor:
+                return
+
+    def add_members(self, id: str, members: Sequence[GroupMemberInput]) -> AddMembersResult:
+        """Adds people by number; new numbers become contacts (a given name replaces theirs, fields merge)."""
+        return cast(AddMembersResult, self._call(r.add_group_members(self._paths, id, members)))
+
+    def remove_member(self, id: str, phone: str) -> None:
+        """Takes the number out of the group; the contact stays."""
+        self._call(r.remove_group_member(self._paths, id, phone))
+
+
 class SMSWire:
     """Client for one project. Settings default to SMSWIRE_KEY, SMSWIRE_PROJECT, SMSWIRE_URL, SMSWIRE_WEBHOOK_SECRET."""
 
@@ -211,6 +265,7 @@ class SMSWire:
         self.messages = Messages(self._send, paths)
         self.otp = OneTimeCodes(self._send, paths)
         self.schedules = Schedules(self._send, paths)
+        self.groups = Groups(self._send, paths)
         self.webhooks = _Webhooks(webhook_secret or os.environ.get("SMSWIRE_WEBHOOK_SECRET"))
 
     def _send(self, req: Request) -> Any:
@@ -253,8 +308,9 @@ class AsyncMessages:
 
     async def send_bulk(
         self,
-        messages: Sequence[BulkItem],
+        messages: Sequence[BulkItem] = (),
         *,
+        group_ids: Optional[Sequence[str]] = None,
         name: Optional[str] = None,
         body: Optional[str] = None,
         template: Optional[str] = None,
@@ -265,7 +321,7 @@ class AsyncMessages:
         metadata: Optional[Dict[str, Any]] = None,
         send_at: r.When = None,
     ) -> BulkResult:
-        req = r.send_bulk(self._paths, messages=messages, name=name, body=body, template=template, rate=rate, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
+        req = r.send_bulk(self._paths, messages=messages, group_ids=group_ids, name=name, body=body, template=template, rate=rate, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
         return cast(BulkResult, await self._call(req))
 
     async def get(self, id: str) -> Message:
@@ -333,6 +389,46 @@ class AsyncSchedules:
         await self._call(r.delete_schedule(self._paths, id))
 
 
+class AsyncGroups:
+    def __init__(self, call: Any, paths: r.Paths) -> None:
+        self._call, self._paths = call, paths
+
+    async def create(self, name: str, *, keywords: Optional[Sequence[str]] = None, join_reply: Optional[str] = None) -> Group:
+        """Same arguments as SMSWire.groups.create."""
+        return cast(Group, await self._call(r.create_group(self._paths, name=name, keywords=keywords, join_reply=join_reply)))
+
+    async def list(self) -> GroupList:
+        return cast(GroupList, await self._call(r.list_groups(self._paths)))
+
+    async def get(self, id: str) -> Group:
+        return cast(Group, await self._call(r.get_group(self._paths, id)))
+
+    async def update(self, id: str, **changes: Any) -> Group:
+        return cast(Group, await self._call(r.update_group(self._paths, id, **changes)))
+
+    async def delete(self, id: str) -> None:
+        await self._call(r.delete_group(self._paths, id))
+
+    async def list_members(self, id: str, *, cursor: Optional[str] = None, limit: Optional[int] = None) -> GroupMemberPage:
+        return cast(GroupMemberPage, await self._call(r.list_group_members(self._paths, id, cursor=cursor, limit=limit)))
+
+    async def list_all_members(self, id: str, *, limit: Optional[int] = None) -> AsyncIterator[GroupMember]:
+        cursor: Optional[str] = None
+        while True:
+            page = await self.list_members(id, cursor=cursor, limit=limit)
+            for member in page["data"]:
+                yield member
+            cursor = page.get("next_cursor")
+            if not cursor:
+                return
+
+    async def add_members(self, id: str, members: Sequence[GroupMemberInput]) -> AddMembersResult:
+        return cast(AddMembersResult, await self._call(r.add_group_members(self._paths, id, members)))
+
+    async def remove_member(self, id: str, phone: str) -> None:
+        await self._call(r.remove_group_member(self._paths, id, phone))
+
+
 class AsyncSMSWire:
     """Async client for one project; same settings as SMSWire."""
 
@@ -354,6 +450,7 @@ class AsyncSMSWire:
         self.messages = AsyncMessages(self._send, paths)
         self.otp = AsyncOneTimeCodes(self._send, paths)
         self.schedules = AsyncSchedules(self._send, paths)
+        self.groups = AsyncGroups(self._send, paths)
         self.webhooks = _Webhooks(webhook_secret or os.environ.get("SMSWIRE_WEBHOOK_SECRET"))
 
     async def _send(self, req: Request) -> Any:

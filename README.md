@@ -82,6 +82,19 @@ sms.schedules.list()
 sms.schedules.delete(schedule["id"])
 ```
 
+## Contact groups
+
+Groups belong to the workspace, so every project's key sees the same ones. With `keywords`, someone who texts exactly one of them to a workspace phone joins the group (and gets `join_reply` once); your webhook hears `group.joined`.
+
+```python
+group = sms.groups.create("Promo", keywords=["A2"], join_reply="You're in! Reply STOP to opt out.")
+sms.groups.add_members(group["id"], [{"phone": "+251911234567", "name": "Abebe"}])
+for member in sms.groups.list_all_members(group["id"]):
+    print(member["phone"], member["source"])
+sms.messages.send_bulk(group_ids=[group["id"]], body="Hi {{name|there}}, 20% off today")
+sms.groups.remove_member(group["id"], "+251911234567")
+```
+
 ## Async
 
 ```python

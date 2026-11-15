@@ -122,3 +122,61 @@ class BulkItem(TypedDict, total=False):
 class ScheduleRecipient(TypedDict, total=False):
     to: str
     variables: Optional[Dict[str, Any]]
+
+
+GroupJoinSource = Literal["manual", "import", "keyword", "api"]
+
+
+class _GroupRequired(TypedDict):
+    id: str
+    name: str
+    size: int
+    keywords: List[str]
+    created_at: str
+
+
+class Group(_GroupRequired, total=False):
+    join_reply: Optional[str]
+
+
+class GroupList(TypedDict):
+    data: List[Group]
+
+
+class _GroupMemberRequired(TypedDict):
+    contact_id: str
+    phone: str
+    fields: Dict[str, str]
+    joined_at: str
+    source: GroupJoinSource
+    opted_out: bool
+
+
+class GroupMember(_GroupMemberRequired, total=False):
+    name: Optional[str]
+
+
+class _GroupMemberPageRequired(TypedDict):
+    data: List[GroupMember]
+
+
+class GroupMemberPage(_GroupMemberPageRequired, total=False):
+    next_cursor: Optional[str]
+
+
+class InvalidMember(TypedDict):
+    index: int
+    phone: str
+
+
+class AddMembersResult(TypedDict):
+    added: int
+    already: int
+    invalid: List[InvalidMember]
+
+
+class GroupMemberInput(TypedDict, total=False):
+    phone: str
+    name: Optional[str]
+    fields: Optional[Dict[str, str]]
+

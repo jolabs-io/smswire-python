@@ -111,6 +111,23 @@ def test_manages_a_recurring_send(sms: SMSWire) -> None:
     assert raised.value.status == 404
 
 
+def test_manages_a_contact_group_and_sends_to_it(sms: SMSWire) -> None:
+    group = sms.groups.create("Python promo", keywords=["JOINPY"], join_reply="Welcome")
+    assert (group["name"], group["size"], group["keywords"], group.get("join_reply")) == ("Python promo", 0, ["JOINPY"], "Welcome")
+    added = sms.groups.add_members(group["id"], [{"phone": "+251911000201", "name": "Ada"}, {"phone": "nope"}, {"phone": "+251911000202"}])
+    assert added == {"added": 2, "already": 0, "invalid": [{"index": 1, "phone": "nope"}]}
+    assert sorted(m["phone"] for m in sms.groups.list_all_members(group["id"], limit=1)) == ["+251911000201", "+251911000202"]
+    assert sms.messages.send_bulk(group_ids=[group["id"]], body="Hi {{name|there}}")["accepted"] == 2
+    assert sms.groups.update(group["id"], keywords=[])["keywords"] == []
+    sms.groups.remove_member(group["id"], "+251911000201")
+    assert sms.groups.get(group["id"])["size"] == 1
+    assert group["id"] in [g["id"] for g in sms.groups.list()["data"]]
+    sms.groups.delete(group["id"])
+    with pytest.raises(SMSWireError) as e:
+        sms.groups.get(group["id"])
+    assert e.value.status == 404
+
+
 def test_verifies_the_webhooks_the_api_really_sends(server: Dict[str, Any], sms: SMSWire) -> None:
     control(server, "/reply", {"from": "+251911234567", "body": "ሰላም, thanks!"})
     hooks = eventually(

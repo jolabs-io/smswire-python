@@ -27,6 +27,7 @@ class Paths:
         self.messages = f"{p}/messages"
         self.otp = f"{p}/otp"
         self.schedules = f"{p}/schedules"
+        self.groups = f"{p}/groups"
 
     @staticmethod
     def one(base: str, id: str) -> str:
@@ -44,7 +45,7 @@ def send_message(paths: Paths, idempotency_key: Optional[str], **fields: Any) ->
 
 
 def send_bulk(paths: Paths, **fields: Any) -> Request:
-    messages: Sequence[Any] = fields.pop("messages")
+    messages: Sequence[Any] = fields.pop("messages") or ()
     return Request("POST", f"{paths.messages}/bulk", body={**_clean(**fields), "messages": [_clean(**m) for m in messages]}, idempotent=False)
 
 
@@ -87,3 +88,37 @@ def update_schedule(paths: Paths, id: str, **changes: Any) -> Request:
 
 def delete_schedule(paths: Paths, id: str) -> Request:
     return Request("DELETE", Paths.one(paths.schedules, id))
+
+
+def create_group(paths: Paths, **fields: Any) -> Request:
+    return Request("POST", paths.groups, body=_clean(**fields), idempotent=False)
+
+
+def list_groups(paths: Paths) -> Request:
+    return Request("GET", paths.groups)
+
+
+def get_group(paths: Paths, id: str) -> Request:
+    return Request("GET", Paths.one(paths.groups, id))
+
+
+def update_group(paths: Paths, id: str, **changes: Any) -> Request:
+    # Only what's passed changes; keywords=[] turns joining by text off, join_reply=None clears it.
+    return Request("PATCH", Paths.one(paths.groups, id), body=dict(changes))
+
+
+def delete_group(paths: Paths, id: str) -> Request:
+    return Request("DELETE", Paths.one(paths.groups, id))
+
+
+def list_group_members(paths: Paths, id: str, **query: Any) -> Request:
+    return Request("GET", f"{Paths.one(paths.groups, id)}/members", query={k: v for k, v in query.items() if v is not None})
+
+
+def add_group_members(paths: Paths, id: str, members: Sequence[Any]) -> Request:
+    return Request("POST", f"{Paths.one(paths.groups, id)}/members", body={"members": [_clean(**m) for m in members]})
+
+
+def remove_group_member(paths: Paths, id: str, phone: str) -> Request:
+    return Request("DELETE", f"{Paths.one(paths.groups, id)}/members/{quote(phone, safe='')}")
+
