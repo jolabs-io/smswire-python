@@ -17,8 +17,8 @@ def _iso(value: When) -> Optional[str]:
 
 
 def _clean(**fields: Any) -> Dict[str, Any]:
-    """The JSON body: None means "not given", so it is left out."""
-    return {k: (_iso(v) if isinstance(v, datetime) else v) for k, v in fields.items() if v is not None}
+    """The JSON body: None means "not given", so it is left out. ``from_`` is sent as ``from``."""
+    return {k.rstrip("_"): (_iso(v) if isinstance(v, datetime) else v) for k, v in fields.items() if v is not None}
 
 
 class Paths:

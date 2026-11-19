@@ -75,6 +75,7 @@ class Messages:
         *,
         template: Optional[str] = None,
         variables: Optional[Dict[str, Any]] = None,
+        from_: Optional[str] = None,
         phone: Optional[str] = None,
         sim: Optional[int] = None,
         type: Optional[MessageType] = None,
@@ -84,7 +85,7 @@ class Messages:
         idempotency_key: Optional[str] = None,
     ) -> Message:
         """Queues one SMS. ``idempotency_key`` (default: random) makes repeating the call safe."""
-        req = r.send_message(self._paths, idempotency_key, to=to, body=body, template=template, variables=variables, phone=phone, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
+        req = r.send_message(self._paths, idempotency_key, to=to, body=body, template=template, variables=variables, from_=from_, phone=phone, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
         return cast(Message, self._call(req))
 
     def send_bulk(
@@ -96,6 +97,7 @@ class Messages:
         body: Optional[str] = None,
         template: Optional[str] = None,
         rate: Optional[int] = None,
+        from_: Optional[str] = None,
         phone: Optional[str] = None,
         sim: Optional[int] = None,
         type: Optional[MessageType] = None,
@@ -104,7 +106,7 @@ class Messages:
         send_at: r.When = None,
     ) -> BulkResult:
         """Queues a batch (``messages`` and/or the members of ``group_ids``); invalid or opted-out items come back in ``rejected``."""
-        req = r.send_bulk(self._paths, messages=messages, group_ids=group_ids, name=name, body=body, template=template, rate=rate, phone=phone, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
+        req = r.send_bulk(self._paths, messages=messages, group_ids=group_ids, name=name, body=body, template=template, rate=rate, from_=from_, phone=phone, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
         return cast(BulkResult, self._call(req))
 
     def get(self, id: str) -> Message:
@@ -146,9 +148,9 @@ class OneTimeCodes:
     def __init__(self, call: Any, paths: r.Paths) -> None:
         self._call, self._paths = call, paths
 
-    def send(self, to: str, *, length: Optional[int] = None, ttl: Optional[int] = None, body: Optional[str] = None, template: Optional[str] = None, phone: Optional[str] = None, sim: Optional[int] = None) -> Otp:
+    def send(self, to: str, *, length: Optional[int] = None, ttl: Optional[int] = None, body: Optional[str] = None, template: Optional[str] = None, from_: Optional[str] = None, phone: Optional[str] = None, sim: Optional[int] = None) -> Otp:
         """Texts a fresh code to ``to``. Keep the returned ``id`` for verify()."""
-        return cast(Otp, self._call(r.send_otp(self._paths, to=to, length=length, ttl=ttl, body=body, template=template, phone=phone, sim=sim)))
+        return cast(Otp, self._call(r.send_otp(self._paths, to=to, length=length, ttl=ttl, body=body, template=template, from_=from_, phone=phone, sim=sim)))
 
     def verify(self, id: str, code: str) -> OtpVerification:
         """``valid`` is False with a ``reason`` when the code is wrong, expired or used."""
@@ -174,6 +176,7 @@ class Schedules:
         type: Optional[MessageType] = None,
         tags: Optional[Sequence[str]] = None,
         metadata: Optional[Dict[str, Any]] = None,
+        from_: Optional[str] = None,
         phone: Optional[str] = None,
         sim: Optional[int] = None,
         rate: Optional[int] = None,
@@ -182,7 +185,7 @@ class Schedules:
         enabled: Optional[bool] = None,
     ) -> Schedule:
         """A message (or batch) sent again and again on a cron schedule."""
-        req = r.create_schedule(self._paths, cron=cron, name=name, timezone=timezone, to=to, messages=messages, group_ids=group_ids, body=body, template=template, variables=variables, type=type, tags=tags, metadata=metadata, phone=phone, sim=sim, rate=rate, ends_at=ends_at, max_runs=max_runs, enabled=enabled)
+        req = r.create_schedule(self._paths, cron=cron, name=name, timezone=timezone, to=to, messages=messages, group_ids=group_ids, body=body, template=template, variables=variables, type=type, tags=tags, metadata=metadata, from_=from_, phone=phone, sim=sim, rate=rate, ends_at=ends_at, max_runs=max_runs, enabled=enabled)
         return cast(Schedule, self._call(req))
 
     def list(self) -> SchedulePage:
@@ -299,6 +302,7 @@ class AsyncMessages:
         *,
         template: Optional[str] = None,
         variables: Optional[Dict[str, Any]] = None,
+        from_: Optional[str] = None,
         phone: Optional[str] = None,
         sim: Optional[int] = None,
         type: Optional[MessageType] = None,
@@ -307,7 +311,7 @@ class AsyncMessages:
         send_at: r.When = None,
         idempotency_key: Optional[str] = None,
     ) -> Message:
-        req = r.send_message(self._paths, idempotency_key, to=to, body=body, template=template, variables=variables, phone=phone, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
+        req = r.send_message(self._paths, idempotency_key, to=to, body=body, template=template, variables=variables, from_=from_, phone=phone, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
         return cast(Message, await self._call(req))
 
     async def send_bulk(
@@ -319,6 +323,7 @@ class AsyncMessages:
         body: Optional[str] = None,
         template: Optional[str] = None,
         rate: Optional[int] = None,
+        from_: Optional[str] = None,
         phone: Optional[str] = None,
         sim: Optional[int] = None,
         type: Optional[MessageType] = None,
@@ -326,7 +331,7 @@ class AsyncMessages:
         metadata: Optional[Dict[str, Any]] = None,
         send_at: r.When = None,
     ) -> BulkResult:
-        req = r.send_bulk(self._paths, messages=messages, group_ids=group_ids, name=name, body=body, template=template, rate=rate, phone=phone, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
+        req = r.send_bulk(self._paths, messages=messages, group_ids=group_ids, name=name, body=body, template=template, rate=rate, from_=from_, phone=phone, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
         return cast(BulkResult, await self._call(req))
 
     async def get(self, id: str) -> Message:
@@ -366,8 +371,8 @@ class AsyncOneTimeCodes:
     def __init__(self, call: Any, paths: r.Paths) -> None:
         self._call, self._paths = call, paths
 
-    async def send(self, to: str, *, length: Optional[int] = None, ttl: Optional[int] = None, body: Optional[str] = None, template: Optional[str] = None, phone: Optional[str] = None, sim: Optional[int] = None) -> Otp:
-        return cast(Otp, await self._call(r.send_otp(self._paths, to=to, length=length, ttl=ttl, body=body, template=template, phone=phone, sim=sim)))
+    async def send(self, to: str, *, length: Optional[int] = None, ttl: Optional[int] = None, body: Optional[str] = None, template: Optional[str] = None, from_: Optional[str] = None, phone: Optional[str] = None, sim: Optional[int] = None) -> Otp:
+        return cast(Otp, await self._call(r.send_otp(self._paths, to=to, length=length, ttl=ttl, body=body, template=template, from_=from_, phone=phone, sim=sim)))
 
     async def verify(self, id: str, code: str) -> OtpVerification:
         return cast(OtpVerification, await self._call(r.verify_otp(self._paths, id, code)))
