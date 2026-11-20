@@ -106,6 +106,29 @@ async with AsyncSMSWire() as sms:
         ...
 ```
 
+## Campaigns
+
+A campaign is a send with a name: a message, who it goes to, who to leave out, and when. It is made as a
+draft and nothing goes out until you start it, so you can check who it reaches first. Each run is an
+ordinary batch. `marketing` needs `consent` -- that the recipients agreed to hear from you -- and
+`stop_footer` ends every marketing message with your opt-out line, counted in its SMS parts.
+
+```python
+campaign = sms.campaigns.create(
+    "Weekend sale",
+    body="Hi {{name|there}}, 20% off this weekend",
+    type="marketing",
+    consent=True,
+    audience={"group_ids": [group["id"]]},
+    exclude={"recent_days": 7},
+    stop_footer="Reply STOP to opt out",
+)
+print(sms.campaigns.preview(campaign["id"]))
+sms.campaigns.send(campaign["id"])
+results = sms.campaigns.results(campaign["id"])
+print(results["delivered"], results["replies"], results["opt_outs"], results["parts"])
+```
+
 ## Webhooks
 
 Status updates (`message.status`) and replies (`message.received`) are POSTed to the project's webhook URL, signed with `X-SMSWire-Signature`. Verify the **raw** body:

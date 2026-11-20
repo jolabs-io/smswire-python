@@ -12,6 +12,11 @@ from .types import (
     AddMembersResult,
     BulkItem,
     BulkResult,
+    Campaign,
+    CampaignList,
+    CampaignPreview,
+    CampaignResults,
+    CampaignSendResult,
     Group,
     GroupList,
     GroupMember,
@@ -250,6 +255,56 @@ class Groups:
         self._call(r.remove_group_member(self._paths, id, phone))
 
 
+class Campaigns:
+    """Campaigns: a send with a name, an audience, who to leave out and when.
+
+    A campaign is made as a draft and nothing goes out until ``send``, so an audience can be built
+    up over several calls and checked with ``preview`` first. Each run is an ordinary batch.
+    """
+
+    def __init__(self, call: Any, paths: r.Paths) -> None:
+        self._call, self._paths = call, paths
+
+    def create(self, name: str, **fields: Any) -> Campaign:
+        """Makes a draft. Marketing needs ``consent=True``; ``stop_footer`` ends every marketing
+        message with your opt-out line; ``cron`` repeats it instead of sending once."""
+        return cast(Campaign, self._call(r.create_campaign(self._paths, name=name, **fields)))
+
+    def list(self) -> CampaignList:
+        return cast(CampaignList, self._call(r.list_campaigns(self._paths)))
+
+    def get(self, id: str) -> Campaign:
+        return cast(Campaign, self._call(r.get_campaign(self._paths, id)))
+
+    def update(self, id: str, **changes: Any) -> Campaign:
+        """Only what's passed changes, and the change reaches the runs still to come."""
+        return cast(Campaign, self._call(r.update_campaign(self._paths, id, **changes)))
+
+    def delete(self, id: str) -> None:
+        """The campaign goes; its runs stay in the message log."""
+        self._call(r.delete_campaign(self._paths, id))
+
+    def preview(self, id: str) -> CampaignPreview:
+        """Who it would reach right now: groups read, duplicates dropped, exclusions applied."""
+        return cast(CampaignPreview, self._call(r.preview_campaign(self._paths, id)))
+
+    def results(self, id: str) -> CampaignResults:
+        """How it did: delivery, SMS parts, replies and the opt-outs it cost."""
+        return cast(CampaignResults, self._call(r.campaign_results(self._paths, id)))
+
+    def send(self, id: str) -> CampaignSendResult:
+        """Starts it: ``queued`` with a batch, or ``scheduled`` when it waits for its time or cron."""
+        return cast(CampaignSendResult, self._call(r.send_campaign(self._paths, id)))
+
+    def control(self, id: str, status: str) -> Campaign:
+        """"paused" holds every run still going; "running" lets them carry on."""
+        return cast(Campaign, self._call(r.control_campaign(self._paths, id, status)))
+
+    def cancel(self, id: str) -> Campaign:
+        """Stops it for good: what is still on the server is cancelled and refunded."""
+        return cast(Campaign, self._call(r.cancel_campaign(self._paths, id)))
+
+
 class SMSWire:
     """Client for one project. Settings default to SMSWIRE_KEY, SMSWIRE_PROJECT, SMSWIRE_URL, SMSWIRE_WEBHOOK_SECRET."""
 
@@ -272,6 +327,7 @@ class SMSWire:
         self.otp = OneTimeCodes(self._send, paths)
         self.schedules = Schedules(self._send, paths)
         self.groups = Groups(self._send, paths)
+        self.campaigns = Campaigns(self._send, paths)
         self.webhooks = _Webhooks(webhook_secret or os.environ.get("SMSWIRE_WEBHOOK_SECRET"))
 
     def _send(self, req: Request) -> Any:
@@ -439,6 +495,42 @@ class AsyncGroups:
         await self._call(r.remove_group_member(self._paths, id, phone))
 
 
+class AsyncCampaigns:
+    def __init__(self, call: Any, paths: r.Paths) -> None:
+        self._call, self._paths = call, paths
+
+    async def create(self, name: str, **fields: Any) -> Campaign:
+        """Same arguments as SMSWire.campaigns.create."""
+        return cast(Campaign, await self._call(r.create_campaign(self._paths, name=name, **fields)))
+
+    async def list(self) -> CampaignList:
+        return cast(CampaignList, await self._call(r.list_campaigns(self._paths)))
+
+    async def get(self, id: str) -> Campaign:
+        return cast(Campaign, await self._call(r.get_campaign(self._paths, id)))
+
+    async def update(self, id: str, **changes: Any) -> Campaign:
+        return cast(Campaign, await self._call(r.update_campaign(self._paths, id, **changes)))
+
+    async def delete(self, id: str) -> None:
+        await self._call(r.delete_campaign(self._paths, id))
+
+    async def preview(self, id: str) -> CampaignPreview:
+        return cast(CampaignPreview, await self._call(r.preview_campaign(self._paths, id)))
+
+    async def results(self, id: str) -> CampaignResults:
+        return cast(CampaignResults, await self._call(r.campaign_results(self._paths, id)))
+
+    async def send(self, id: str) -> CampaignSendResult:
+        return cast(CampaignSendResult, await self._call(r.send_campaign(self._paths, id)))
+
+    async def control(self, id: str, status: str) -> Campaign:
+        return cast(Campaign, await self._call(r.control_campaign(self._paths, id, status)))
+
+    async def cancel(self, id: str) -> Campaign:
+        return cast(Campaign, await self._call(r.cancel_campaign(self._paths, id)))
+
+
 class AsyncSMSWire:
     """Async client for one project; same settings as SMSWire."""
 
@@ -461,6 +553,7 @@ class AsyncSMSWire:
         self.otp = AsyncOneTimeCodes(self._send, paths)
         self.schedules = AsyncSchedules(self._send, paths)
         self.groups = AsyncGroups(self._send, paths)
+        self.campaigns = AsyncCampaigns(self._send, paths)
         self.webhooks = _Webhooks(webhook_secret or os.environ.get("SMSWIRE_WEBHOOK_SECRET"))
 
     async def _send(self, req: Request) -> Any:

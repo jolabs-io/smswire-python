@@ -124,6 +124,102 @@ class ScheduleRecipient(TypedDict, total=False):
     variables: Optional[Dict[str, Any]]
 
 
+CampaignStatus = Literal["draft", "scheduled", "sending", "paused", "done", "cancelled"]
+
+
+class CampaignAudience(TypedDict, total=False):
+    group_ids: List[str]
+    numbers: List[str]
+    messages: List[ScheduleRecipient]
+
+
+class CampaignExclude(TypedDict, total=False):
+    group_ids: List[str]
+    recent_days: Optional[int]
+    no_reply_to_campaign_id: Optional[str]
+
+
+class CampaignQuietHours(TypedDict):
+    start: str
+    end: str
+    timezone: str
+
+
+class _CampaignRequired(TypedDict):
+    id: str
+    name: str
+    status: CampaignStatus
+    body: str
+    type: MessageType
+    tags: List[str]
+    audience: CampaignAudience
+    exclude: CampaignExclude
+    rate: int
+    consent: bool
+    total: int
+    runs: int
+    created_at: str
+
+
+class Campaign(_CampaignRequired, total=False):
+    sim: Optional[int]
+    quiet_hours: Optional[CampaignQuietHours]
+    stop_footer: Optional[str]
+    next_run_at: Optional[str]
+    last_run_at: Optional[str]
+    cron: Optional[str]
+    timezone: Optional[str]
+
+
+class CampaignList(TypedDict):
+    data: List[Campaign]
+
+
+class CampaignRun(TypedDict):
+    batch_id: str
+    total: int
+    delivered: int
+    failed: int
+    created_at: str
+
+
+class _CampaignResultsRequired(TypedDict):
+    delivered: int
+    failed: int
+    awaiting: int
+    waiting: int
+    parts: int
+    replies: int
+    opt_outs: int
+    runs: List[CampaignRun]
+
+
+class CampaignResults(_CampaignResultsRequired, total=False):
+    delivery_rate: Optional[float]
+
+
+class CampaignExcluded(TypedDict):
+    group: int
+    recent: int
+    replied: int
+    duplicate: int
+
+
+class CampaignPreview(TypedDict):
+    recipients: int
+    excluded: CampaignExcluded
+
+
+class _CampaignSendRequired(TypedDict):
+    status: Literal["queued", "scheduled"]
+    accepted: int
+    rejected: List[RejectedItem]
+
+
+class CampaignSendResult(_CampaignSendRequired, total=False):
+    batch_id: Optional[str]
+
+
 GroupJoinSource = Literal["manual", "import", "keyword", "api"]
 
 

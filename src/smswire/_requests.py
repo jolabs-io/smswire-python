@@ -28,6 +28,7 @@ class Paths:
         self.otp = f"{p}/otp"
         self.schedules = f"{p}/schedules"
         self.groups = f"{p}/groups"
+        self.campaigns = f"{p}/campaigns"
 
     @staticmethod
     def one(base: str, id: str) -> str:
@@ -109,6 +110,47 @@ def update_group(paths: Paths, id: str, **changes: Any) -> Request:
 
 def delete_group(paths: Paths, id: str) -> Request:
     return Request("DELETE", Paths.one(paths.groups, id))
+
+
+def create_campaign(paths: Paths, **fields: Any) -> Request:
+    return Request("POST", paths.campaigns, body=_clean(**fields), idempotent=False)
+
+
+def list_campaigns(paths: Paths) -> Request:
+    return Request("GET", paths.campaigns)
+
+
+def get_campaign(paths: Paths, id: str) -> Request:
+    return Request("GET", Paths.one(paths.campaigns, id))
+
+
+def update_campaign(paths: Paths, id: str, **changes: Any) -> Request:
+    # Only what's passed changes; the rest of the campaign stays as it is.
+    return Request("PATCH", Paths.one(paths.campaigns, id), body=dict(changes))
+
+
+def delete_campaign(paths: Paths, id: str) -> Request:
+    return Request("DELETE", Paths.one(paths.campaigns, id))
+
+
+def preview_campaign(paths: Paths, id: str) -> Request:
+    return Request("GET", f"{Paths.one(paths.campaigns, id)}/preview")
+
+
+def campaign_results(paths: Paths, id: str) -> Request:
+    return Request("GET", f"{Paths.one(paths.campaigns, id)}/results")
+
+
+def send_campaign(paths: Paths, id: str) -> Request:
+    return Request("POST", f"{Paths.one(paths.campaigns, id)}/send", idempotent=False)
+
+
+def control_campaign(paths: Paths, id: str, status: str) -> Request:
+    return Request("POST", f"{Paths.one(paths.campaigns, id)}/control", body={"status": status})
+
+
+def cancel_campaign(paths: Paths, id: str) -> Request:
+    return Request("POST", f"{Paths.one(paths.campaigns, id)}/cancel")
 
 
 def list_group_members(paths: Paths, id: str, **query: Any) -> Request:
