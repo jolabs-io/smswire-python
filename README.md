@@ -57,6 +57,27 @@ batch = sms.messages.send_bulk(
 # → {"batch_id": …, "accepted": 2, "rejected": [{"index", "to", "reason"}]}
 ```
 
+## Templates in more than one language
+
+A template saved on the dashboard can hold a text per language. Send it by name and each recipient
+gets the one they read — the `language` on their contact — while everyone else gets the default text.
+A message says which language it went out in (`language`; `null` is the default text), and `pt-BR`
+matches a text written in `pt`.
+
+```python
+sms.messages.send_bulk(
+    [
+        {"to": "+251911234567", "variables": {"name": "Abebe"}},             # reads am → the Amharic text
+        {"to": "+14155550123", "variables": {"name": "Alex"}},               # no language → the default text
+        {"to": "+5511999990000", "language": "pt-BR", "variables": {"name": "Bruna"}},
+    ],
+    template="order-shipped",
+)
+
+# One language for everybody, whatever they read:
+sms.messages.send("+251911234567", template="order-shipped", language="am", variables={"name": "Abebe"})
+```
+
 ## One-time codes
 
 ```python
