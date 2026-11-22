@@ -21,6 +21,7 @@ class _MessageRequired(TypedDict):
 
 class Message(_MessageRequired, total=False):
     error: Optional[str]
+    language: Optional[str]
     metadata: Optional[Dict[str, Any]]
     batch_id: Optional[str]
     scheduled_at: Optional[str]
@@ -113,6 +114,7 @@ class SchedulePage(TypedDict):
 class BulkItem(TypedDict, total=False):
     to: str
     body: Optional[str]
+    language: Optional[str]
     variables: Optional[Dict[str, Any]]
     type: Optional[MessageType]
     tags: Optional[List[str]]

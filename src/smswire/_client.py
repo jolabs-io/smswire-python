@@ -79,6 +79,7 @@ class Messages:
         body: Optional[str] = None,
         *,
         template: Optional[str] = None,
+        language: Optional[str] = None,
         variables: Optional[Dict[str, Any]] = None,
         from_: Optional[str] = None,
         phone: Optional[str] = None,
@@ -90,7 +91,7 @@ class Messages:
         idempotency_key: Optional[str] = None,
     ) -> Message:
         """Queues one SMS. ``idempotency_key`` (default: random) makes repeating the call safe."""
-        req = r.send_message(self._paths, idempotency_key, to=to, body=body, template=template, variables=variables, from_=from_, phone=phone, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
+        req = r.send_message(self._paths, idempotency_key, to=to, body=body, template=template, language=language, variables=variables, from_=from_, phone=phone, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
         return cast(Message, self._call(req))
 
     def send_bulk(
@@ -101,6 +102,7 @@ class Messages:
         name: Optional[str] = None,
         body: Optional[str] = None,
         template: Optional[str] = None,
+        language: Optional[str] = None,
         rate: Optional[int] = None,
         from_: Optional[str] = None,
         phone: Optional[str] = None,
@@ -111,7 +113,7 @@ class Messages:
         send_at: r.When = None,
     ) -> BulkResult:
         """Queues a batch (``messages`` and/or the members of ``group_ids``); invalid or opted-out items come back in ``rejected``."""
-        req = r.send_bulk(self._paths, messages=messages, group_ids=group_ids, name=name, body=body, template=template, rate=rate, from_=from_, phone=phone, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
+        req = r.send_bulk(self._paths, messages=messages, group_ids=group_ids, name=name, body=body, template=template, language=language, rate=rate, from_=from_, phone=phone, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
         return cast(BulkResult, self._call(req))
 
     def get(self, id: str) -> Message:
@@ -357,6 +359,7 @@ class AsyncMessages:
         body: Optional[str] = None,
         *,
         template: Optional[str] = None,
+        language: Optional[str] = None,
         variables: Optional[Dict[str, Any]] = None,
         from_: Optional[str] = None,
         phone: Optional[str] = None,
@@ -367,7 +370,7 @@ class AsyncMessages:
         send_at: r.When = None,
         idempotency_key: Optional[str] = None,
     ) -> Message:
-        req = r.send_message(self._paths, idempotency_key, to=to, body=body, template=template, variables=variables, from_=from_, phone=phone, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
+        req = r.send_message(self._paths, idempotency_key, to=to, body=body, template=template, language=language, variables=variables, from_=from_, phone=phone, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
         return cast(Message, await self._call(req))
 
     async def send_bulk(
@@ -378,6 +381,7 @@ class AsyncMessages:
         name: Optional[str] = None,
         body: Optional[str] = None,
         template: Optional[str] = None,
+        language: Optional[str] = None,
         rate: Optional[int] = None,
         from_: Optional[str] = None,
         phone: Optional[str] = None,
@@ -387,7 +391,7 @@ class AsyncMessages:
         metadata: Optional[Dict[str, Any]] = None,
         send_at: r.When = None,
     ) -> BulkResult:
-        req = r.send_bulk(self._paths, messages=messages, group_ids=group_ids, name=name, body=body, template=template, rate=rate, from_=from_, phone=phone, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
+        req = r.send_bulk(self._paths, messages=messages, group_ids=group_ids, name=name, body=body, template=template, language=language, rate=rate, from_=from_, phone=phone, sim=sim, type=type, tags=tags, metadata=metadata, send_at=send_at)
         return cast(BulkResult, await self._call(req))
 
     async def get(self, id: str) -> Message:
