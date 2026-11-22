@@ -275,4 +275,5 @@ class GroupMemberInput(TypedDict, total=False):
     phone: str
     name: Optional[str]
     fields: Optional[Dict[str, str]]
+    language: Optional[str]
 
