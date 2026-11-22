@@ -155,9 +155,9 @@ class OneTimeCodes:
     def __init__(self, call: Any, paths: r.Paths) -> None:
         self._call, self._paths = call, paths
 
-    def send(self, to: str, *, length: Optional[int] = None, ttl: Optional[int] = None, body: Optional[str] = None, template: Optional[str] = None, from_: Optional[str] = None, phone: Optional[str] = None, sim: Optional[int] = None) -> Otp:
+    def send(self, to: str, *, length: Optional[int] = None, ttl: Optional[int] = None, body: Optional[str] = None, template: Optional[str] = None, language: Optional[str] = None, from_: Optional[str] = None, phone: Optional[str] = None, sim: Optional[int] = None) -> Otp:
         """Texts a fresh code to ``to``. Keep the returned ``id`` for verify()."""
-        return cast(Otp, self._call(r.send_otp(self._paths, to=to, length=length, ttl=ttl, body=body, template=template, from_=from_, phone=phone, sim=sim)))
+        return cast(Otp, self._call(r.send_otp(self._paths, to=to, length=length, ttl=ttl, body=body, template=template, language=language, from_=from_, phone=phone, sim=sim)))
 
     def verify(self, id: str, code: str) -> OtpVerification:
         """``valid`` is False with a ``reason`` when the code is wrong, expired or used."""
@@ -179,6 +179,7 @@ class Schedules:
         group_ids: Optional[List[str]] = None,
         body: Optional[str] = None,
         template: Optional[str] = None,
+        language: Optional[str] = None,
         variables: Optional[Dict[str, Any]] = None,
         type: Optional[MessageType] = None,
         tags: Optional[Sequence[str]] = None,
@@ -192,7 +193,7 @@ class Schedules:
         enabled: Optional[bool] = None,
     ) -> Schedule:
         """A message (or batch) sent again and again on a cron schedule."""
-        req = r.create_schedule(self._paths, cron=cron, name=name, timezone=timezone, to=to, messages=messages, group_ids=group_ids, body=body, template=template, variables=variables, type=type, tags=tags, metadata=metadata, from_=from_, phone=phone, sim=sim, rate=rate, ends_at=ends_at, max_runs=max_runs, enabled=enabled)
+        req = r.create_schedule(self._paths, cron=cron, name=name, timezone=timezone, to=to, messages=messages, group_ids=group_ids, body=body, template=template, language=language, variables=variables, type=type, tags=tags, metadata=metadata, from_=from_, phone=phone, sim=sim, rate=rate, ends_at=ends_at, max_runs=max_runs, enabled=enabled)
         return cast(Schedule, self._call(req))
 
     def list(self) -> SchedulePage:
@@ -432,7 +433,7 @@ class AsyncOneTimeCodes:
         self._call, self._paths = call, paths
 
     async def send(self, to: str, *, length: Optional[int] = None, ttl: Optional[int] = None, body: Optional[str] = None, template: Optional[str] = None, from_: Optional[str] = None, phone: Optional[str] = None, sim: Optional[int] = None) -> Otp:
-        return cast(Otp, await self._call(r.send_otp(self._paths, to=to, length=length, ttl=ttl, body=body, template=template, from_=from_, phone=phone, sim=sim)))
+        return cast(Otp, await self._call(r.send_otp(self._paths, to=to, length=length, ttl=ttl, body=body, template=template, language=language, from_=from_, phone=phone, sim=sim)))
 
     async def verify(self, id: str, code: str) -> OtpVerification:
         return cast(OtpVerification, await self._call(r.verify_otp(self._paths, id, code)))

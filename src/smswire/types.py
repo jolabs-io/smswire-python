@@ -98,6 +98,7 @@ class _ScheduleRequired(TypedDict):
 class Schedule(_ScheduleRequired, total=False):
     body: Optional[str]
     template_id: Optional[str]
+    language: Optional[str]
     type: Optional[MessageType]
     next_run_at: Optional[str]
     last_run_at: Optional[str]
