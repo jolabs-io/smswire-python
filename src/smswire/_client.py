@@ -432,7 +432,7 @@ class AsyncOneTimeCodes:
     def __init__(self, call: Any, paths: r.Paths) -> None:
         self._call, self._paths = call, paths
 
-    async def send(self, to: str, *, length: Optional[int] = None, ttl: Optional[int] = None, body: Optional[str] = None, template: Optional[str] = None, from_: Optional[str] = None, phone: Optional[str] = None, sim: Optional[int] = None) -> Otp:
+    async def send(self, to: str, *, length: Optional[int] = None, ttl: Optional[int] = None, body: Optional[str] = None, template: Optional[str] = None, language: Optional[str] = None, from_: Optional[str] = None, phone: Optional[str] = None, sim: Optional[int] = None) -> Otp:
         return cast(Otp, await self._call(r.send_otp(self._paths, to=to, length=length, ttl=ttl, body=body, template=template, language=language, from_=from_, phone=phone, sim=sim)))
 
     async def verify(self, id: str, code: str) -> OtpVerification:
